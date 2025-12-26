@@ -1,0 +1,102 @@
+#!/bin/bash
+# MaHarNet 5G Fix (MHNF) CLI Tool
+# Usage: mhnf [on|off|status]
+
+ACTION="$1"
+
+if [ "$EUID" -ne 0 ]; then
+  echo "❌ Error: Please run as root (sudo mhnf ...)"
+  exit 1
+fi
+
+SYSCTL_FILE="/etc/sysctl.d/99-maharnet.conf"
+RC_FILE="/etc/rc.local"
+
+install_fix() {
+    echo "🛠  Enabling MaHarNet 5G Optimization..."
+    
+    # 1. Sysctl
+    echo " -> [Sysctl] Writing optimized Kernel parameters..."
+    cat <<EOF > "$SYSCTL_FILE"
+# Maharnet 5G Anti-Stall Tuning
+net.ipv4.tcp_mtu_probing=1
+net.ipv4.tcp_congestion_control=bbr
+net.core.default_qdisc=fq
+net.ipv4.tcp_fastopen=3
+EOF
+    # Apply immediately
+    sysctl --system > /dev/null 2>&1
+
+    # 2. RC.Local
+    echo " -> [RC.Local] Configuring startup script..."
+    if [ ! -f "$RC_FILE" ]; then
+        echo "#!/bin/bash" > "$RC_FILE"
+        chmod +x "$RC_FILE"
+    fi
+    
+    # Idempotent append
+    grep -q "TCPMSS" "$RC_FILE" || echo "iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu" >> "$RC_FILE"
+    grep -q "power_save" "$RC_FILE" || echo "/sbin/iw dev wlp1s0 set power_save off 2>/dev/null || true" >> "$RC_FILE"
+
+    # Execute immediately
+    /sbin/iw dev wlp1s0 set power_save off 2>/dev/null || true
+    iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || true
+
+    echo "✅ MHNF: ON (Optimizations Applied & Persisted)"
+}
+
+uninstall_fix() {
+    echo "🗑  Disabling MaHarNet 5G Optimization..."
+
+    # 1. Remove Sysctl
+    if [ -f "$SYSCTL_FILE" ]; then
+        rm "$SYSCTL_FILE"
+        echo " -> [Sysctl] Configuration removed."
+    fi
+
+    # 2. Clean RC.Local
+    if [ -f "$RC_FILE" ]; then
+        sed -i '/TCPMSS/d' "$RC_FILE"
+        sed -i '/power_save/d' "$RC_FILE"
+        echo " -> [RC.Local] Startup commands removed."
+    fi
+
+    # Revert Runtime (Optional best effort)
+    sysctl -w net.ipv4.tcp_mtu_probing=0 >/dev/null 2>&1
+    iptables -t mangle -D POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || true
+
+    echo "✅ MHNF: OFF (Optimizations Removed)"
+}
+
+status_check() {
+    echo "📊 MHNF Status:"
+    if [ -f "$SYSCTL_FILE" ]; then
+        echo " - Persistence (Sysctl):  ACTIVE ✅"
+    else
+        echo " - Persistence (Sysctl):  INACTIVE ❌"
+    fi
+
+    # Check Runtime
+    PROBING=$(sysctl -n net.ipv4.tcp_mtu_probing 2>/dev/null)
+    if [ "$PROBING" == "1" ]; then
+        echo " - Runtime (MTU Probing): ACTIVE ✅"
+    else
+        echo " - Runtime (MTU Probing): INACTIVE ❌"
+    fi
+}
+
+case "$ACTION" in
+    on)
+        install_fix
+        ;;
+    off)
+        uninstall_fix
+        ;;
+    status)
+        status_check
+        ;;
+    *)
+        echo "Usage: mhnf {on|off|status}"
+        exit 1
+        ;;
+esac

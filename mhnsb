@@ -1,0 +1,28 @@
+#!/bin/bash
+# MaHarNet Sandbox (MHNSB) CLI Tool
+# Usage: mhnsb [on|off]
+
+ACTION="$1"
+BASE_DIR="/home/guest/tzdump/isp-test-suite"
+
+if [ "$EUID" -ne 0 ]; then
+  echo "❌ Error: Please run as root (sudo mhnsb ...)"
+  exit 1
+fi
+
+case "$ACTION" in
+    on)
+        echo "📦 Enabling Sandbox (Moving WiFi Adapter IN)..."
+        cd "$BASE_DIR" && ./sandbox_wifi.sh
+        ;;
+    off)
+        echo "📤 Disabling Sandbox (Pulling WiFi Adapter OUT)..."
+        cd "$BASE_DIR" && ./reset_sandbox.sh
+        ;;
+    *)
+        echo "Usage: mhnsb {on|off}"
+        echo "  on  -> Sandbox WiFi (Run sandbox_wifi.sh)"
+        echo "  off -> Return to Host (Run reset_sandbox.sh)"
+        exit 1
+        ;;
+esac

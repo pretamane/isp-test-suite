@@ -1,0 +1,13 @@
+{
+    "ContaboLab": {
+        "ssid": "MaHarNet5G",
+        "password": "YOUR_WIFI_PASSWORD_HERE",
+        "ip_address": "192.168.1.15/24",
+        "gateway": "192.168.1.1",
+        "mac_address": "44:fa:66:c5:44:a1"
+    },
+    "Legacy2G": {
+        "ssid": "MaHarNet2G",
+        "password": "abc123xyz"
+    }
+}

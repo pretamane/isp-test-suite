@@ -1,0 +1,13 @@
+[Unit]
+Description=WiFiBox Network Manager Sandbox
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/wifibox/config
+ExecStart=/usr/local/bin/wifibox monitor --profile ${PROFILE}
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
