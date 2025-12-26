@@ -13,11 +13,11 @@ fi
 case "$ACTION" in
     on)
         echo "📦 Enabling Sandbox (Moving WiFi Adapter IN)..."
-        cd "$BASE_DIR" && ./sandbox_wifi.sh
+        cd "$BASE_DIR" && ../core/sandbox_wifi.sh
         ;;
     off)
         echo "📤 Disabling Sandbox (Pulling WiFi Adapter OUT)..."
-        cd "$BASE_DIR" && ./reset_sandbox.sh
+        cd "$BASE_DIR" && ../core/reset_sandbox.sh
         ;;
     *)
         echo "Usage: mhnsb {on|off}"

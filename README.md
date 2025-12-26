@@ -23,12 +23,12 @@ This suite is divided into **Isolation**, **Diagnosis**, and **Verification** to
 
 | Tool File | Purpose |
 | :--- | :--- |
-| `wifibox.py` | **Core Engine**. Creates an isolated Network Namespace (`internet_box`) and moves your WiFi card inside it for safe testing without breaking the Host's connectivity. |
-| `simulate_stall.sh` | **The Litmus Test**. Sends a ~5KB payload to Google Gemini. If this hangs, your network has the MTU Blackhole bug. |
-| `simulate_stream.sh` | **Stability Check**. Simulates a long-running, slow stream (like a Chatbot response) to verify anti-stall stability over time. |
-| `health_check.sh` | **General Vitals**. Checks Ping, DNS, Jitter, and Packet Loss (Google vs Gateway) to differentiate "Congestion" from "Stalls". |
-| `optimize_host_network.sh` | **The Fix**. Applies `iptables` rules to clamp TCP MSS to 1320 bytes on the host. |
-| `maharnet_soc_report.md` | **Documentation**. A technical incident report generated for ISP Support/SOC teams. |
+| `core/wifibox.py` | **Core Engine**. Creates an isolated Network Namespace (`internet_box`) and moves your WiFi card inside it for safe testing without breaking the Host's connectivity. |
+| `diagnostics/simulate_stall.sh` | **The Litmus Test**. Sends a ~5KB payload to Google Gemini. If this hangs, your network has the MTU Blackhole bug. |
+| `diagnostics/simulate_stream.sh` | **Stability Check**. Simulates a long-running, slow stream (like a Chatbot response) to verify anti-stall stability over time. |
+| `diagnostics/health_check.sh` | **General Vitals**. Checks Ping, DNS, Jitter, and Packet Loss (Google vs Gateway) to differentiate "Congestion" from "Stalls". |
+| `setup/optimize_host_network.sh` | **The Fix**. Applies `iptables` rules to clamp TCP MSS to 1320 bytes on the host. |
+| `docs/maharnet_soc_report.md` | **Documentation**. A technical incident report generated for ISP Support/SOC teams. |
 
 ---
 
